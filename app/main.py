@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from ai_service import get_ai_response
+from app.ai_service import get_ai_response
+
 
 app = FastAPI()
 
