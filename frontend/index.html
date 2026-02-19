@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Customer Support</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background: #d7c4a9;
+        }
+
+        h2 {
+            margin-top: 30px;
+            color: #4a2e1f;
+            text-shadow: 1px 1px 2px #b89f88;
+        }
+
+        #chat-container {
+            background: #f5e0c3;
+            width: 480px;
+            max-width: 95%;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            padding: 20px;
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid #c49e73;
+        }
+
+        #chat-box {
+            border: 2px solid #c49e73;
+            border-radius: 15px;
+            padding: 15px;
+            height: 420px;
+            overflow-y: auto;
+            background: url('https://i.ibb.co/XjP3fDh/wood-texture.jpg');
+            background-size: cover;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+        }
+
+        .user-msg, .ai-reply {
+            padding: 12px 18px;
+            margin: 8px 0;
+            border-radius: 20px;
+            max-width: 75%;
+            word-wrap: break-word;
+            font-weight: 500;
+            box-shadow: 1px 1px 5px rgba(0,0,0,0.2);
+        }
+
+        .user-msg { background-color: rgba(255,255,255,0.8); align-self: flex-end; }
+        .ai-reply { background-color: rgba(245,245,220,0.9); align-self: flex-start; }
+
+        #input-section {
+            display: flex;
+            margin-top: 15px;
+        }
+
+        #message {
+            flex: 1;
+            padding: 12px 15px;
+            border-radius: 25px;
+            border: 2px solid #c49e73;
+            outline: none;
+            font-size: 15px;
+        }
+
+        #send-btn {
+            padding: 12px 22px;
+            margin-left: 10px;
+            background-color: #8b5e3c;
+            border: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        #send-btn:hover { background-color: #613f2c; }
+        .loading { font-style: italic; color: #555; }
+    </style>
+</head>
+<body>
+
+    <h2>🌳 AI Customer Support Chat</h2>
+
+    <div id="chat-container">
+        <div id="chat-box"></div>
+        <div id="input-section">
+            <input type="text" id="message" placeholder="Type your message here..." />
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById("chat-box");
+        const messageInput = document.getElementById("message");
+        const sendBtn = document.getElementById("send-btn");
+
+        // Random session_id
+        const sessionId = "user_" + Math.floor(Math.random() * 100000);
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // User message
+            const userMsg = document.createElement("div");
+            userMsg.className = "user-msg";
+            userMsg.innerText = message;
+            chatBox.appendChild(userMsg);
+            messageInput.value = "";
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Loading
+            const loadingMsg = document.createElement("div");
+            loadingMsg.className = "ai-reply loading";
+            loadingMsg.innerText = "AI is typing...";
+            chatBox.appendChild(loadingMsg);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ session_id: sessionId, message: message })
+                });
+
+                const data = await response.json();
+                chatBox.removeChild(loadingMsg);
+
+                const aiMsg = document.createElement("div");
+                aiMsg.className = "ai-reply";
+                aiMsg.innerText = data.response;
+                chatBox.appendChild(aiMsg);
+                chatBox.scrollTop = chatBox.scrollHeight;
+
+            } catch (err) {
+                chatBox.removeChild(loadingMsg);
+                const errorMsg = document.createElement("div");
+                errorMsg.className = "ai-reply";
+                errorMsg.innerText = "🤖 Sorry, something went wrong!";
+                chatBox.appendChild(errorMsg);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        messageInput.addEventListener("keypress", e => { if(e.key==="Enter") sendMessage(); });
+        sendBtn.addEventListener("click", sendMessage);
+    </script>
+
+</body>
+</html>
